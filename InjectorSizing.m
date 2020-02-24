@@ -1,34 +1,38 @@
 %% Main Injector Sizing
-addpath('D:\Documents\GitHub\MATLAB-PnID\Gas Feed System Model\')
+addpath('/Users/JBR132/Documents/_Stanford/AA284B Propulsion System Design Lab/MATLAB-PnID/Gas Feed System Model')
+% addpath('D:\Documents\GitHub\MATLAB-PnID\Gas Feed System Model\')
 FluidDatabase
 
-IdP = 0.32;
 
-PIF = 1.6205e6;% Pa, Methane injector feed pressure
-TIF = 177.42;% K, Methane injector feed temperature
+PIF = 1.6e6;% Pa, Methane injector feed pressure
+TIF = 244;% K, Methane injector feed temperature
 rhoIF = PREoS(Methane,"rho",PIF,TIF);% In manifold
-rhoIF2 = PREoS(Methane,"rho",PIF*(1-IdP),TIF);% After orifice
+IdPF = (PIF-10e5)/PIF;
+rhoIF2 = PREoS(Methane,"rho",PIF*(1-IdPF),TIF);% After orifice
 
-PIO = 10/(1-IdP)*1e5;% Pa, Oxygen injector feed pressure
-TIO = 120;% K, Oxygen injector feed temperature
+PIO = 20*1e5;% Pa, Oxygen injector feed pressure
+TIO = 140;% K, Oxygen injector feed temperature
 rhoIO = PREoS(Oxygen,"rho",PIO,TIO);% In manifold
 rhoIO = rhoIO(2);
-rhoIO2 = PREoS(Oxygen,"rho",PIO*(1-IdP),TIO);% After orifice
+IdPO = (PIO-10e5)/PIO;
+rhoIO2 = PREoS(Oxygen,"rho",PIO*(1-IdPO),TIO);% After orifice
 rhoIO2 = rhoIO2(2);
 
+
 n_elements = 10;
+O_per_element = 2;
 mdotF = 0.07945;% kg/s, Methane mass flow rate
 mdotO = 0.1986;% kg/s, Oxygen mass flow rate
 
 CdIF = 0.6;% Cd of thin plate orifice
 CdIO = 0.6;
 
-AIF = mdotF/(CdIF*sqrt(2*rhoIF*(PIF*IdP)));% From Cd equation
-AIO = mdotF/(CdIO*sqrt(2*rhoIO*(PIO*IdP)));
+AIF = mdotF/(CdIF*sqrt(2*rhoIF*(PIF*IdPF)));% From Cd equation
+AIO = mdotF/(CdIO*sqrt(2*rhoIO*(PIO*IdPO)));
 
 % Injector orifice diameters
-DIO = sqrt((AIO/n_elements)/pi)*2;% n circular orifices
-t = max([PIO*(1-IdP)*DIO/2*1/convpres(125e3,"psi","Pa"),0.381e-3]);
+DIO = sqrt((AIO/n_elements/O_per_element)/pi)*2;% n circular orifices
+t = max([PIO*(1-IdPO)*DIO/2*1/convpres(125e3,"psi","Pa"),0.381e-3]);
 DIFi = DIO+2*t;
 % AIF = pi*(DIFo/2)^2 - pi*(DIFi/2)^2
 DIFo = sqrt((AIF/n_elements + pi*(DIFi/2)^2)/pi)*2;
